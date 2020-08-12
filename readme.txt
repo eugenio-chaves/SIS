@@ -18,7 +18,7 @@ no meu IP e ate agora nada, mas a longo prazo acho uma boa colocar em uma EC2.
 Na página https://pastebin.com/archive tem os ultimos 50 pastes publicos que foram postados.
 O script scrape.py vai fazer um loop e salvar os pastes 1 por 1 em formato txt na pasta pastelog.
 
-De inicio, o intervalo para cada paste ser armazenado é um numero ramdom de no minimo 2 segundos 
+De inicio, o intervalo para cada paste ser armazenado é um numero random de no minimo 2 segundos 
 e maximo 10, eu coloquei esse intervalo para evitar um banimento. Então, leva mais ou menos 7 minutos 
 para armazenar uma pagina inteira contendo os 50 pastes.
 
