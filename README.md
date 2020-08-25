@@ -1,6 +1,6 @@
 # SIS
 
-##Como usar
+## Como usar
 - Criar uma pasta/diretorio para os salvarem e filtrar os pastes, ex: pastelog/
 - Executar o scrape.py primeiro e deixar rodando por uns 10 minutos, no Linux:$ ./scrape.py &
 - Colocar as credenciais do email no codigo peneira.py, no linux eu criei uma variavel para o
@@ -14,7 +14,7 @@ no meu IP e ate agora nada, mas a longo prazo acho uma boa colocar em uma EC2.**
                                     
                                     
                                     
-##Scrape.py
+## Scrape.py
 
 Na página https://pastebin.com/archive tem os ultimos 50 pastes publicos que foram postados.
 O script scrape.py vai fazer um loop e salvar os pastes 1 por 1 em formato txt na pasta pastelog.
@@ -34,7 +34,7 @@ uma chance de tomar um bloqueio no meu IP.
 
 ======
 
-##Peneira.py
+## Peneira.py
 
 
 Esse script vai fazer o filtro nos pastesque estão dentro da pasta pastelog usando regex, e se caso ele der
@@ -61,7 +61,7 @@ tudo em uma db usando mongo.py).
 
 ======
 
-##Lista de Regex
+## Lista de Regex
 
 \d{3}[\.*-_]\d{3}[\.*-_]\d{3}[\.*-_]\d{2}            Regex para o formato do CPF
 [a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+       Regex para o formato de email simples
