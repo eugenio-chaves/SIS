@@ -32,7 +32,7 @@ Um paste vai ser armazenado com o nome "Hwh0R8r", e o link para esse paste é ht
 Eu estou usando uma instancia na EC2 quando quero testar o cogigo por um longo tempo, só para evitar 
 uma chance de tomar um bloqueio no meu IP. 
 
-======
+
 
 ## Peneira.py
 
@@ -49,7 +49,7 @@ Possivel leak no Pastebin, link direto para o site https://pastebin.com/xEv0PmeN
 
 Dentro do código, deixei mais detalhado como funciona.
 
-======
+
 
 Tem umas coisas que pretendo melhorar e adicionar nesse codigo(Peneira.py), por exemplo: 
 - Criar um método para quando o email for mandado, especificar que tipo de match deu no paste(se foi um CPF ou 
@@ -59,7 +59,7 @@ uma senha por exemplo).
 tudo em uma db usando mongo.py).
 - Criar uma função e um método para validar os CPFs 
 
-======
+
 
 ## Lista de Regex
 
