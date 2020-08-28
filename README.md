@@ -63,9 +63,14 @@ tudo em uma db usando mongo.py).
 
 ## Lista de Regex
 
-\d{3}[\.*-_]\d{3}[\.*-_]\d{3}[\.*-_]\d{2}            Regex para o formato do CPF
-[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+       Regex para o formato de email simples
-[pP][aA4][sS5][sS5][Ww][o0O][Rr][dD]                 Regex para buscar por 'password'. esse  e o de email geram bastante matchs e acabam aumentando os falso-positivos,
-                                                     mas e bom para testar o codigo, na hora do produto final acho uma boa tirar.
-4[0-9]{12}(?:[0-9]{3})?                              Cartao Visa
-(5[1-5][0-9]{14}|2(22[1-9][0-9]{12}|2[3-9][0-9]{13}|[3-6][0-9]{14}|7[0-1][0-9]{13}|720[0-9]{12}))   Cartao Mastercard
+Regex para o formato do CPF: \d{3}[\.*-_]\d{3}[\.*-_]\d{3}[\.*-_]\d{2}
+
+Regex para o formato de email simples: [a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+
+
+Regex para buscar por 'password': [pP][aA4][sS5][sS5][Ww][o0O][Rr][dD]
+
+Regex para a palavra usuário: [uU][sS][uU][aAáÁ][rR][iIl][oO0]
+
+Regex para qualquer cartao de credito(somente numeros sem .- ou ' '): ^(?:4[0-9]{12}(?:[0-9]{3})?|[25][1-7][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$
+
+

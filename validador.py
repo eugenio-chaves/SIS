@@ -18,14 +18,13 @@ import re
 '''
 
 #156.421.746-90
-cpf = '156.421.746-90'
-email = 'email@email.com'
+
 
 
 def Email_validator():
     #Verificando se a string possui pelo menos um @ e um .
     if email.find("@") > 0 and email.find(".") > 0:
-        print("Valid E-mail")
+        return True
     else:
         print("Invalid E-mail")
 
@@ -41,7 +40,7 @@ def CPF_calculo(cpf):
     
         
 
-def CPF_validator():
+def CPF_validator(cpf):
     #Deixando apenas números
     num_cpf = re.sub('[^0-9]','',cpf)
     
@@ -57,13 +56,13 @@ def CPF_validator():
         etapa2 = CPF_calculo(etapa1)
 
         if etapa2 ==  num_cpf:
-            print("Valid Cpf")
+            return True
         else:
-            print("Invalid Cpf")
+            print("CPF invalido")
     
 
-     
+if __name__ == "__main__":
+    CPF_validator()
+    Email_validator()
 
-Email_validator()
-CPF_validator()
 

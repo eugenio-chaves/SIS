@@ -5,13 +5,17 @@ import re
 import os
 import sys
 import smtplib
+from validador import CPF_validator, Email_validator
 
 EMAIL_ADDRESS = os.environ.get('EMAIL_USER')  #criar uma variavel no arquivo .bashrc ou .bash_profile com os dados de acesso, ou simplesmente colar no script mesmo.
 EMAIL_PASSWORD = os.environ.get('EMAIL_PASS')
 MY_DIR = '' #precisa ser o mesmo diretorio em que o scraper salva os arquivos.
 RESULT = [] #espaço para salvar o nome do arquivo atual do loop, para depois concatenar com a string e montar o link completo do pastebin.
+#regex
+CPF = r'\d{3}[\.*-_]\d{3}[\.*-_]\d{3}[\.*-_]\d{2}'
+CHAVES = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+EMAIL = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
 
-CHAVES = r'[pP][aA4][sS5][sS5][Ww][o0O][Rr][dD]|\d{3}[\.*-_]\d{3}[\.*-_]\d{3}[\.*-_]\d{2}|4[0-9]{12}(?:[0-9]{3})?|(5[1-5][0-9]{14}|2(22[1-9][0-9]{12}|2[3-9][0-9]{13}|[3-6][0-9]{14}|7[0-1][0-9]{13}|720[0-9]{12}))'
 
 #função para mandar email
 def send_email(subject, msg): 
@@ -27,17 +31,37 @@ def send_email(subject, msg):
     except:
         print('Falha no envio do email.')
 
+
+
+
+
 #loop para filtar os arquivos usando regex. e se caso der positivo enviar um email.
 for files in os.listdir(MY_DIR):
     RESULT.append(files)
     try:
         with open (MY_DIR + files, encoding='utf-8') as f: 
             files = f.read()
+            CPFmatch = re.search(CPF, files)
+            #Emailmatch = re.search(EMAIL, files)
+
             if re.search(CHAVES, files,) is not None:
                 print('[+] Tem coisa aqui! -- Link direto https://pastebin.com/'+RESULT[-1])
                 subject = 'Possivel vazamento achado no pastebin'
                 msg = 'Possivel leak no Pastebin, link direto para o site https://pastebin.com/'+RESULT[-1]
                 send_email(subject, msg)
+                
+            elif CPFmatch:
+                CPFnumber = CPFmatch.group() + '\n'
+                if CPF_validator(CPFnumber) is True:
+                    print('[+] CPF Valido achado! -- Link direto https://pastebin.com/'+RESULT[-1])
+                    subject = 'Possivel vazamento achado no pastebin'
+                    msg = 'CPF Valido publicado no Pastebin, link direto para o Paste https://pastebin.com/'+RESULT[-1]
+                    send_email(subject, msg)
+                    
+            #elif Emailmatch:
+                #NewEmail = Emailmatch.group() + '\n'       #trabalho em progresso
+                #if Email_validator(NewEmail) is True:
+              
                 
             else:
                 print('[-] Pass')
@@ -50,4 +74,12 @@ for files in os.listdir(MY_DIR):
 '''
 Filtro para buscar informacoes sensiveis dentro de pastes postados no pastebin para a ferramenta SPYWEB do grupo SIS
 
+27/08/20 - Eugenio
+* Filtro para CPF adicionado junto com o validador
+* Mudei o retorno do validador de cpf para algo ser feito quando o cpf for valido
+* Achei um regex para multiplos cartoes de credito, mas para ele funcionar o numero precisa estar limpo, sem pontos e espaco
+* Tirei a maioria dos regex CHAVES, estava gerando muito falso-positivos
+* A parte que trata do email esta parada por agora, meio que nao sei o que fazer direito
 '''
+
+                                    
