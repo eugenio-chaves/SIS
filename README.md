@@ -1,43 +1,33 @@
 # SIS
 
 ## Como usar
-- Criar uma pasta/diretorio para os salvarem e filtrar os pastes, ex: pastelog/
-- Executar o scrape.py primeiro e deixar rodando por uns 10 minutos, no Linux:$ ./scrape.py &
+- Executar o scrape.py primeiro e deixar rodando por uns 10 minutos, no Linux:$ ./scrape.py
 - Colocar as credenciais do email no codigo peneira.py, no linux eu criei uma variavel para o
 email e password, ex:(EMAIL_USER="lalala@gmail") no arquivo .bashrc ou .bash_profile caso eu precise 
 compartilhar o codigo.
-- Executar o codigo peneira.py:$ ./peneira.py
 
 **Obs: Tem a chance de tomar bloqueio no pastebin se ficar pingando direto la, eu testei bastante
 no meu IP e ate agora nada, mas a longo prazo acho uma boa colocar em uma EC2.**                            
                                     
-                                    
-                                    
-                                    
 ## Scrape.py
 
 Na página https://pastebin.com/archive tem os ultimos 50 pastes publicos que foram postados.
-O script scrape.py vai fazer um loop e salvar os pastes 1 por 1 em formato txt na pasta pastelog.
+O script scrape.py vai analisar os pastes 1 por 1 e verificar se possui alguma informação 
+sensível.
 
 De inicio, o intervalo para cada paste ser armazenado é um numero random de no minimo 2 segundos 
-e maximo 10, eu coloquei esse intervalo para evitar um banimento. Então, leva mais ou menos 7 minutos 
-para armazenar uma pagina inteira contendo os 50 pastes.
+e maximo 10, foi colocado esse intervalo para evitar um banimento. Então, leva mais ou menos 7 minutos 
+para verificar uma pagina inteira contendo os 50 pastes.
 
 Esse script sera automatizado usando cronjobs (https://www.youtube.com/watch?v=Qf5SPjHzvyw), 
 de inicio, estou testando invocar ele a cada 15 minutos.
 
-O nome do arquivo armazenado é o mesmo nome de seu propio link final. Por exemplo:
-Um paste vai ser armazenado com o nome "Hwh0R8r", e o link para esse paste é https://pastebin.com/HKwh0R8r
-
-Eu estou usando uma instancia na EC2 quando quero testar o cogigo por um longo tempo, só para evitar 
-uma chance de tomar um bloqueio no meu IP. 
-
-
+é recomendavel o uso de uma instância na EC2 quando for testar o código por um longo tempo, só para evitar uma chance de tomar um bloqueio no seu IP. 
 
 ## Peneira.py
 
 
-Esse script vai fazer o filtro nos pastesque estão dentro da pasta pastelog usando regex, e se caso ele der
+Esse script vai fazer o filtro nos pastes usando regex, e se caso ele der
 um match ele vai enviar um email notificando que deu um match positivo e vai montar o link original 
 do paste no email, exemplo:
 
@@ -47,19 +37,7 @@ to bcc: me
 
 Possivel leak no Pastebin, link direto para o site https://pastebin.com/xEv0PmeN
 
-Dentro do código, deixei mais detalhado como funciona.
-
-
-
-Tem umas coisas que pretendo melhorar e adicionar nesse codigo(Peneira.py), por exemplo: 
-- Criar um método para quando o email for mandado, especificar que tipo de match deu no paste(se foi um CPF ou 
-uma senha por exemplo).
-- Melhorar o regex para dar search em cartão de crédito.
-- Deletar todos os arquivos da pasta pastelog depois que o loop for concluido(também estava pensando em jogar 
-tudo em uma db usando mongo.py).
-- Criar uma função e um método para validar os CPFs 
-
-
+Dentro do código, possui mais informações sobre o funcionamento.
 
 ## Lista de Regex
 
