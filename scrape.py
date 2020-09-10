@@ -48,8 +48,8 @@ class TextAreaParser(HTMLParser):
 #Função para salvar o arquivo, cada arquivo tera o nome da sua hash.
     def handle_data(self, data):
         if self.inTextarea:
-            print(self.paste_id)
-            print(data)
+            print("[+] Paste Coletado: https://pastebin.com" + self.paste_id)
+            #print(data)
             Search(data,self.paste_id)
             
 

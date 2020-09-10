@@ -10,8 +10,9 @@ from validador import CPF_validator, Email_validator
 EMAIL_ADDRESS = os.environ.get('EMAIL_USER')  #criar uma variavel no arquivo .bashrc ou .bash_profile com os dados de acesso, ou simplesmente colar no script mesmo.
 EMAIL_PASSWORD = os.environ.get('EMAIL_PASS')
 
+
 #regex
-CPF = r'\d{3}[\.*-_]\d{3}[\.*-_]\d{3}[\.*-_]\d{2}'
+CPF = r'([0-9]{2}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})|([0-9]{3}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[-\.]?[0-9]{2})'
 EMAIL = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
 
 def send_email(subject, msg): 
@@ -36,10 +37,10 @@ def Search(info,pasteName):
         Emailmatch = re.search(EMAIL, info)
 
         if Emailmatch:
-            print('[+] Tem coisa aqui! -- Link direto https://pastebin.com/'+ pasteName)
+            print('[+] Tem coisa aqui! -- Link direto https://pastebin.com'+ pasteName)
             subject = 'Possivel vazamento achado no pastebin'
-            msg = 'Possivel leak no Pastebin, link direto para o site https://pastebin.com/' + pasteName
-            #send_email(subject, msg)
+            msg = 'Possivel leak no Pastebin, link direto para o site https://pastebin.com' + pasteName
+            send_email(subject, msg)
             Printar(subject, msg)
                 
         elif CPFmatch:
@@ -48,7 +49,7 @@ def Search(info,pasteName):
                 print('[+] CPF Valido achado! -- Link direto https://pastebin.com/'+ pasteName)
                 subject = 'Possivel vazamento achado no pastebin'
                 msg = 'CPF Valido publicado no Pastebin, link direto para o Paste https://pastebin.com/'+ pasteName
-                #send_email(subject, msg)
+                send_email(subject, msg)
                 Printar(subject, msg)
                     
         else:
