@@ -49,7 +49,7 @@ class TextAreaParser(HTMLParser):
     def handle_data(self, data):
         if self.inTextarea:
             print(bcolors.OKBLUE+"[+]"+bcolors.ENDC+" Lendo o Paste: https://pastebin.com" + self.paste_id)
-            #print(data)
+            #print(data) possivel lugar para salvar o arquivo de log
             Search(data,self.paste_id)
             
 
