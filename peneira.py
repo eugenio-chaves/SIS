@@ -5,7 +5,7 @@ import re
 import os
 import sys
 import smtplib
-from validador import CPF_validator, Email_validator
+from validador import CPF_validator,Email_validator,CC_Validator,bcolors
 
 EMAIL_ADDRESS = os.environ.get('EMAIL_USER')  #criar uma variavel no arquivo .bashrc ou .bash_profile com os dados de acesso, ou simplesmente colar no script mesmo.
 EMAIL_PASSWORD = os.environ.get('EMAIL_PASS')
@@ -14,6 +14,8 @@ EMAIL_PASSWORD = os.environ.get('EMAIL_PASS')
 #regex
 CPF = r'([0-9]{2}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})|([0-9]{3}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[-\.]?[0-9]{2})'
 EMAIL = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+CC = r'\b\d{4}(| |-|.)\d{4}\1\d{4}\1\d{4}\b'
+
 
 def send_email(subject, msg): 
     try:
@@ -24,7 +26,7 @@ def send_email(subject, msg):
         message = 'Subject: {}\n\n{}'.format(subject, msg)
         server.sendmail(EMAIL_ADDRESS, EMAIL_ADDRESS, message) #A segunda variavel é o email do destinatario, mas para para testar ele esta enviando para o proprio endereço.
         server.quit()
-        print('Email enviado com sucesso.')
+        print(bcolors.OKGREEN+'[+] Email enviado com sucesso.'+bcolors.ENDC)
     except:
         print('Falha no envio do email.')
 
@@ -35,25 +37,37 @@ def Search(info,pasteName):
     try:
         CPFmatch = re.search(CPF, info)
         Emailmatch = re.search(EMAIL, info)
+        CCmatch = re.search(CC, info)
 
         if Emailmatch:
-            print('[+] Tem coisa aqui! -- Link direto https://pastebin.com'+ pasteName)
-            subject = 'Possivel vazamento achado no pastebin'
+            print(bcolors.OKGREEN+'[+]'+bcolors.ENDC+' Formato de email achado nesse paste! -- Link direto https://pastebin.com'+ pasteName)
+            subject = ' Possivel vazamento achado no pastebin'
             msg = 'Possivel leak no Pastebin, link direto para o site https://pastebin.com' + pasteName
             send_email(subject, msg)
-            Printar(subject, msg)
-                
+            #Printar('[+]'+subject,msg)
+
+        elif CCmatch:
+            CCNumber = CCmatch.group() + '\n'
+            if CC_Validator(CCNumber) is True:
+                print(bcolors.OKGREEN+'[+]'+bcolors.ENDC+'CC Valido achado! -- Link direto https://pastebin.com/'+ pasteName)
+                subject = ' Possivel vazamento achado no pastebin'
+                msg = 'Cartao de Credito valido publicado no Pastebin, link direto para o Paste https://pastebin.com/'+ pasteName
+                send_email(subject, msg)
+                #Printar('[+]'+subject,msg)
+
+
         elif CPFmatch:
             CPFnumber = CPFmatch.group() + '\n'
             if CPF_validator(CPFnumber) is True:
-                print('[+] CPF Valido achado! -- Link direto https://pastebin.com/'+ pasteName)
-                subject = 'Possivel vazamento achado no pastebin'
+                print(bcolors.OKGREEN+'[+]'+bcolors.ENDC+'CPF Valido achado! -- Link direto https://pastebin.com/'+ pasteName)
+                subject = ' Possivel vazamento achado no pastebin'
                 msg = 'CPF Valido publicado no Pastebin, link direto para o Paste https://pastebin.com/'+ pasteName
                 send_email(subject, msg)
-                Printar(subject, msg)
-                    
+                #Printar('[+]'+subject,msg)
+
+
         else:
-            print('[-] Pass')      
+            print(bcolors.FAIL+'[-] Pass'+bcolors.ENDC)      
     except UnicodeDecodeError:
         #Algumas vezes os pastes estao em outra lingua ou encodados, contendo malware na maioria das vezes.
         print('Paste codificado')

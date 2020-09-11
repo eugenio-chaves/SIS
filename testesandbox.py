@@ -1,7 +1,10 @@
 from peneira import Search
+from validador import bcolors
+
 
 info = ''
 
-pasteName = 'alo'
+pasteName = ''
 
 Search(info,pasteName)
+

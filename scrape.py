@@ -13,7 +13,7 @@ import time
 import random
 import datetime
 from peneira import Search
-
+from validador import bcolors
 #Headers
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:75.0) Gecko/20100101 Firefox/75.0',
@@ -48,7 +48,7 @@ class TextAreaParser(HTMLParser):
 #Função para salvar o arquivo, cada arquivo tera o nome da sua hash.
     def handle_data(self, data):
         if self.inTextarea:
-            print("[+] Paste Coletado: https://pastebin.com" + self.paste_id)
+            print(bcolors.OKBLUE+"[+]"+bcolors.ENDC+" Lendo o Paste: https://pastebin.com" + self.paste_id)
             #print(data)
             Search(data,self.paste_id)
             
@@ -68,7 +68,7 @@ def get_public_pastes():
     for link in lp.links:
         if len(link) == 9:
             get_paste_by_id(link)
-            time.sleep(random.uniform(2, 10)) #interssante deixar o tempo minimo acima de 2 segundos, e um intervalo grande.
+            time.sleep(random.uniform(2, 10)) #interessante deixar o tempo minimo acima de 2 segundos, e um intervalo grande.
 
 if __name__ == "__main__":
     get_public_pastes()
