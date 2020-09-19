@@ -1,4 +1,4 @@
-from peneira import Search
+from spyweb import Search
 from validador import bcolors
 
 
