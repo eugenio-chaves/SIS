@@ -6,14 +6,90 @@
 Este script vai filtrar o codigo fonte da pagina https://pastebin.com/archive para pegar os pastes.
 Ele vai buscar pelo 'Raw Data' que todo paste contem.
 '''
-
+import re
+import getopt
+import os
+import sys
 import requests
 from html.parser import HTMLParser
 import time
 import random
+import smtplib
 import datetime
-from peneira import Search
-from validador import bcolors
+from validador import CPF_validator,Email_validator,CC_Validator,bcolors
+
+##FILTRO
+
+#regex
+CPF = r'([0-9]{2}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})|([0-9]{3}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[-\.]?[0-9]{2})'
+EMAIL = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+CC = r'\b\d{4}(| |-|.)\d{4}\1\d{4}\1\d{4}\b'
+Custom = ''
+
+def send_email(subject, msg): 
+    print(subject,msg)
+    '''
+    print('Subject ' + str(subject) + ',Mensagem ' + msg)
+    try:
+        EMAIL_ADDRESS = os.environ.get('EMAIL_USER')  #criar uma variavel no arquivo .bashrc ou .bash_profile com os dados de acesso, ou simplesmente colar no script mesmo.
+        EMAIL_PASSWORD = os.environ.get('EMAIL_PASS')
+
+        server = smtplib.SMTP('smtp.gmail.com:587')
+        server.ehlo()
+        server.starttls()
+        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+        message = 'Subject: {}\n\n{}'.format(subject, msg)
+        server.sendmail(EMAIL_ADDRESS, EMAIL_ADDRESS, message) #A segunda variavel é o email do destinatario, mas para para testar ele esta enviando para o proprio endereço.
+        server.quit()
+        print(bcolors.OKGREEN+bcolors.BOLD+'[+] Email enviado com sucesso.'+bcolors.ENDC)
+    except:
+        print('Falha no envio do email.')
+    '''
+    
+
+def Shortcut(pasteName,category,category_val):
+    print(bcolors.OKGREEN + '[+]' + bcolors.ENDC + category + ' Válido achado! -- Link direto https://pastebin.com' + pasteName)
+    subject = 'Possivel vazamento achado no pastebin'
+    msg = category + ': ' + category_val
+    send_email(subject, msg)
+    print(bcolors.OKGREEN + '[+]' + bcolors.ENDC + msg)
+
+def Search(info,pasteName):
+    try:
+        global Custom
+        CustomMatch = False
+        CustomMatch = re.search(Custom,info) if Custom != '' else CustomMatch
+       
+        CPFmatch = re.search(CPF, info)
+        Emailmatch = re.search(EMAIL, info)
+        CCmatch = re.search(CC, info)
+
+        if CustomMatch:
+            CustomInfo = CustomMatch.group(0) 
+            Shortcut(pasteName,'Custom',CustomInfo)
+
+        elif Emailmatch:
+            EndEmail = Emailmatch.group(0)
+            Shortcut(pasteName,'Email',EndEmail)
+
+        elif CCmatch:
+            CCNumber = CCmatch.group() + '\n'
+            Shortcut(pasteName,'Cartão de credito',CCNumber)
+
+
+        elif CPFmatch:
+            CPFnumber = CPFmatch.group() + '\n'
+            if CPF_validator(CPFnumber) is True:
+                Shortcut(pasteName,'CPF',CPFnumber)           
+
+        else:
+            print(bcolors.FAIL+'[-] Pass'+bcolors.ENDC)      
+    except UnicodeDecodeError:
+        #Algumas vezes os pastes estao em outra lingua ou encodados, contendo malware na maioria dos casos.
+        print('Paste codificado')
+
+##COLETA DO PASTEBIN
+
 #Headers
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:75.0) Gecko/20100101 Firefox/75.0',
@@ -70,11 +146,27 @@ def get_public_pastes():
             get_paste_by_id(link)
             time.sleep(random.uniform(2, 10)) #interessante deixar o tempo minimo acima de 2 segundos, e um intervalo grande.
 
-if __name__ == "__main__":
-    get_public_pastes()
+def Get_arguments():
+    argv = sys.argv[1:]
+    global Custom
 
+    try:
+        opts, args = getopt.getopt(argv, "c:")
 
+    except:
+        print("Error")
 
+    for opt, arg in opts:
+        #Caso for informado uma informação específica com -c
+        #Exemplo: python3 scrape.py -c import
+        #Exemplo: python3 scrape.py -c python
+        if opt in ['-c']:
+            Custom = arg
+
+    if __name__ == "__main__":
+        get_public_pastes()
+
+Get_arguments()
 
 '''
 Scrape para buscar informacoes sensiveis dentro do pastebin e salvar em arquivos para depois serem filtrados
