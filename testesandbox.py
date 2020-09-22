@@ -1,10 +1,8 @@
 from spyweb import Search
 from validador import bcolors
 
-
 info = ''
-
-pasteName = ''
+pasteName = 'alo'
 
 Search(info,pasteName)
 

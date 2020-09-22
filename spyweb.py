@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
-
 #script desenvolvido primeiramente para ser executado em sistemas Linux.
-#a longo prazo de uso e recomandavel usar em uma maquina na cloud, como a EC2 da amazon por exemplo, pois existe uma chance de ter o IP bloqueado no pastebin.
-'''
-Este script vai filtrar o codigo fonte da pagina https://pastebin.com/archive para pegar os pastes.
-Ele vai buscar pelo 'Raw Data' que todo paste contem.
-'''
+
 import re
 import getopt
 import os
@@ -15,23 +10,32 @@ from html.parser import HTMLParser
 import time
 import random
 import smtplib
-import datetime
+import datetime,pytz
+import pymongo
+from pymongo import MongoClient
 from validador import CPF_validator,Email_validator,CC_Validator,bcolors
 
-##FILTRO
+##PYMONGO DB
+cluster = MongoClient('')
+db = cluster['']
+collection = db['']
 
-#regex
+##FILTRO
 CPF = r'([0-9]{2}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})|([0-9]{3}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[-\.]?[0-9]{2})'
 EMAIL = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
 CC = r'\b\d{4}(| |-|.)\d{4}\1\d{4}\1\d{4}\b'
 Custom = ''
 
+##Timezone GMT-3
+brasil = pytz.timezone('Etc/GMT-3')
+aware_datetime = brasil.localize(datetime.datetime.utcnow())
+
 def send_email(subject, msg): 
     print(subject,msg)
-    '''
+    
     print('Subject ' + str(subject) + ',Mensagem ' + msg)
     try:
-        EMAIL_ADDRESS = os.environ.get('EMAIL_USER')  #criar uma variavel no arquivo .bashrc ou .bash_profile com os dados de acesso, ou simplesmente colar no script mesmo.
+        EMAIL_ADDRESS = os.environ.get('EMAIL_USER')
         EMAIL_PASSWORD = os.environ.get('EMAIL_PASS')
 
         server = smtplib.SMTP('smtp.gmail.com:587')
@@ -39,12 +43,11 @@ def send_email(subject, msg):
         server.starttls()
         server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         message = 'Subject: {}\n\n{}'.format(subject, msg)
-        server.sendmail(EMAIL_ADDRESS, EMAIL_ADDRESS, message) #A segunda variavel é o email do destinatario, mas para para testar ele esta enviando para o proprio endereço.
+        server.sendmail(EMAIL_ADDRESS, EMAIL_ADDRESS, message)
         server.quit()
         print(bcolors.OKGREEN+bcolors.BOLD+'[+] Email enviado com sucesso.'+bcolors.ENDC)
     except:
         print('Falha no envio do email.')
-    '''
     
 
 def Shortcut(pasteName,category,category_val):
@@ -74,7 +77,8 @@ def Search(info,pasteName):
 
         elif CCmatch:
             CCNumber = CCmatch.group() + '\n'
-            Shortcut(pasteName,'Cartão de credito',CCNumber)
+            if CC_Validator(CCNumber) is True:
+                Shortcut(pasteName,'Cartao',CCNumber)
 
 
         elif CPFmatch:
@@ -87,15 +91,16 @@ def Search(info,pasteName):
     except UnicodeDecodeError:
         #Algumas vezes os pastes estao em outra lingua ou encodados, contendo malware na maioria dos casos.
         print('Paste codificado')
+    except TypeError:
+        print('formato invalido')
 
 ##COLETA DO PASTEBIN
 
-#Headers
+
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:75.0) Gecko/20100101 Firefox/75.0',
 }
 
-#Classe para filtar a tag 'a' ná pagina do pastebin.
 class LinkParser(HTMLParser):
     def __init__(self):
         self.links = []
@@ -121,12 +126,16 @@ class TextAreaParser(HTMLParser):
     def handle_endtag(self, tag):
         if tag=="textarea":
             self.inTextarea = False
-#Função para salvar o arquivo, cada arquivo tera o nome da sua hash.
+#Função para lidar com os dados.
     def handle_data(self, data):
         if self.inTextarea:
             print(bcolors.OKBLUE+"[+]"+bcolors.ENDC+" Lendo o Paste: https://pastebin.com" + self.paste_id)
             #print(data) possivel lugar para salvar o arquivo de log
             Search(data,self.paste_id)
+            #ARMAZENANDO NO MONGODB
+            post = {'Link': self.paste_id, 'Conteudo': data, 'last_modified': aware_datetime}
+            collection.insert_one(post)
+            print('    Paste armazenado no Banco de dados')
             
 
 #Aqui é feito um request para cada link filtrado do paste(a hash com 9 digitos)
@@ -144,7 +153,7 @@ def get_public_pastes():
     for link in lp.links:
         if len(link) == 9:
             get_paste_by_id(link)
-            time.sleep(random.uniform(2, 10)) #interessante deixar o tempo minimo acima de 2 segundos, e um intervalo grande.
+            time.sleep(random.uniform(4, 18))
 
 def Get_arguments():
     argv = sys.argv[1:]
