@@ -16,14 +16,16 @@ from pymongo import MongoClient
 from validador import CPF_validator,Email_validator,CC_Validator,bcolors
 
 ##PYMONGO DB
-cluster = MongoClient('')
-db = cluster['']
-collection = db['']
+cluster = MongoClient("")
+
+db = cluster['SisHistory']
+collection = db['pastes']
 
 ##FILTRO
 CPF = r'([0-9]{2}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})|([0-9]{3}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[-\.]?[0-9]{2})'
 EMAIL = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
 CC = r'\b\d{4}(| |-|.)\d{4}\1\d{4}\1\d{4}\b'
+Leaked = 'leaked'
 Custom = ''
 
 ##Timezone GMT-3
@@ -31,9 +33,6 @@ brasil = pytz.timezone('Etc/GMT-3')
 aware_datetime = brasil.localize(datetime.datetime.utcnow())
 
 def send_email(subject, msg): 
-    print(subject,msg)
-    
-    print('Subject ' + str(subject) + ',Mensagem ' + msg)
     try:
         EMAIL_ADDRESS = os.environ.get('EMAIL_USER')
         EMAIL_PASSWORD = os.environ.get('EMAIL_PASS')
@@ -66,10 +65,13 @@ def Search(info,pasteName):
         CPFmatch = re.search(CPF, info)
         Emailmatch = re.search(EMAIL, info)
         CCmatch = re.search(CC, info)
+        Leakedmatch = re.search(Leaked,info)
 
         if CustomMatch:
-            CustomInfo = CustomMatch.group(0) 
-            Shortcut(pasteName,'Custom',CustomInfo)
+            Shortcut(pasteName,'Custom',Custom)
+
+        elif Leakedmatch:
+            Shortcut(pasteName,'Leaked',Leaked)
 
         elif Emailmatch:
             EndEmail = Emailmatch.group(0)
@@ -94,9 +96,8 @@ def Search(info,pasteName):
     except TypeError:
         print('formato invalido')
 
+
 ##COLETA DO PASTEBIN
-
-
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:75.0) Gecko/20100101 Firefox/75.0',
 }
@@ -128,14 +129,27 @@ class TextAreaParser(HTMLParser):
             self.inTextarea = False
 #Função para lidar com os dados.
     def handle_data(self, data):
-        if self.inTextarea:
-            print(bcolors.OKBLUE+"[+]"+bcolors.ENDC+" Lendo o Paste: https://pastebin.com" + self.paste_id)
-            #print(data) possivel lugar para salvar o arquivo de log
-            Search(data,self.paste_id)
-            #ARMAZENANDO NO MONGODB
-            post = {'Link': self.paste_id, 'Conteudo': data, 'last_modified': aware_datetime}
-            collection.insert_one(post)
-            print('    Paste armazenado no Banco de dados')
+        global Quantities
+        if Quantities > 0:       
+            if self.inTextarea:
+                print(bcolors.OKBLUE+"[+]"+bcolors.ENDC+" Lendo o Paste: https://pastebin.com" + self.paste_id)
+                #print(data) possivel lugar para salvar o arquivo de log
+                Search(data,self.paste_id)
+                #ARMAZENANDO NO MONGODB (caso nao seja repetido)
+                dupli_check = collection.find({ "Link": { "$regex": str(self.paste_id) } })
+                try:
+                    dupli_val = dupli_check[0]
+                    print(bcolors.FAIL+'[-] Paste repetido'+bcolors.ENDC)
+                except:
+                    post = {'Link': self.paste_id, 'Conteudo': data, 'last_modified': aware_datetime}
+                    collection.insert_one(post)
+                    print(bcolors.OKBLUE+"[+] Paste armazenado no Banco de dados"+bcolors.ENDC)
+                Quantities -= 1 if Quantities > 0 else Quantities
+        else:
+            print("Finalizando....")
+            sys.exit()
+                
+            
             
 
 #Aqui é feito um request para cada link filtrado do paste(a hash com 9 digitos)
@@ -158,12 +172,14 @@ def get_public_pastes():
 def Get_arguments():
     argv = sys.argv[1:]
     global Custom
+    global Quantities
+    Quantities = 50
 
     try:
-        opts, args = getopt.getopt(argv, "c:")
+        opts, args = getopt.getopt(argv, "c:q:")
 
     except:
-        print("Error")
+        print(bcolors.FAIL+'[-] Error'+bcolors.ENDC)
 
     for opt, arg in opts:
         #Caso for informado uma informação específica com -c
@@ -171,13 +187,11 @@ def Get_arguments():
         #Exemplo: python3 scrape.py -c python
         if opt in ['-c']:
             Custom = arg
+        elif opt in ['-q']:
+            Quantities = int(arg)
+            print("Procurar em " + str(Quantities) + " Pastes")
 
     if __name__ == "__main__":
         get_public_pastes()
 
 Get_arguments()
-
-'''
-Scrape para buscar informacoes sensiveis dentro do pastebin e salvar em arquivos para depois serem filtrados
-pela ferramenta SPYWEB do grupo SIS
-'''
