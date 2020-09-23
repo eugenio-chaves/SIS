@@ -1,11 +1,8 @@
-from spyweb import get_public_pastes,Search
+from spyweb import Search
 from validador import bcolors
 
-info = 'so um tetste joao222@fiap.com.br 1111111111'
-pasteName = 'help'
+info = ''
+pasteName = ''
 
 Search(info,pasteName)
 
-
-
-get_public_pastes()
