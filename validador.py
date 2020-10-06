@@ -1,8 +1,5 @@
 import re,string
 
-# CPF Válido:
-#156.421.746-90
-
 def Email_validator():
     #Verificando se a string possui pelo menos um @ e um .
     if email.find("@") > 0 and email.find(".") > 0:
@@ -37,21 +34,21 @@ def CPF_validator(cpf):
 
         if etapa2 ==  num_cpf:
             return True
-        else:
-            print("CPF invalido")
     
-#Regex para validar se o numero do cartao e valido
-Cre = r'^(?:4[0-9]{12}(?:[0-9]{3})?|[25][1-7][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$'
 
-#Basicamente remover os pontos e espacos em branco da string do cartao e depois validar com o regex "Cre"
-def CC_Validator(CC):
-    Cnumber = CC.translate(str.maketrans('', '', string.punctuation))
-    pattern = re.compile(r'\s+')
-    Cnum = re.sub(pattern, '',Cnumber)
-    if re.search(Cre, Cnum) is None:
-        print('[+] Possivel cartao de Credito achado, mas o numero e falso.')
-    else:
-        return True
+def CC_Validator(card_number):
+    cardJustNum = re.sub('-','',card_number)
+    def digits_of(n):
+        return [int(d) for d in str(n)]
+    digits = digits_of(cardJustNum)
+    odd_digits = digits[-1::-2]
+    even_digits = digits[-2::-2]
+    checksum = 0
+    checksum += sum(odd_digits)
+    for i in even_digits:
+        checksum += sum(digits_of(i*2))
+    return checksum % 10
+
 
 #Cores
 class bcolors:

@@ -26,6 +26,7 @@ CPF = r'([0-9]{2}[\.-]?[0-9]{3}[\.-]?[0-9]{3}[\/]?[0-9]{4}[-]?[0-9]{2})|([0-9]{3
 EMAIL = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
 CC = r'\b\d{4}(| |-|.)\d{4}\1\d{4}\1\d{4}\b'
 Leaked = 'leaked'
+Onion = '.onion'
 Custom = ''
 
 ##Timezone GMT-3
@@ -66,6 +67,7 @@ def Search(info,pasteName):
         Emailmatch = re.search(EMAIL, info)
         CCmatch = re.search(CC, info)
         Leakedmatch = re.search(Leaked,info)
+        Onionmatch = re.search(Onion,info)
 
         if CustomMatch:
             Shortcut(pasteName,'Custom',Custom)
@@ -73,23 +75,30 @@ def Search(info,pasteName):
         elif Leakedmatch:
             Shortcut(pasteName,'Leaked',Leaked)
 
+        elif Leakedmatch:
+            Shortcut(pasteName,'.Onion',Onion)
+
         elif Emailmatch:
             EndEmail = Emailmatch.group(0)
             Shortcut(pasteName,'Email',EndEmail)
 
         elif CCmatch:
             CCNumber = CCmatch.group() + '\n'
-            if CC_Validator(CCNumber) is True:
-                Shortcut(pasteName,'Cartao',CCNumber)
+            if CC_Validator(CCNumber) == 0:
+                Shortcut(pasteName,'Cartão',CCNumber)
+            else:
+                print(bcolors.FAIL +"Cartão inválido encontrado"+ bcolors.ENDC)
 
 
         elif CPFmatch:
             CPFnumber = CPFmatch.group() + '\n'
             if CPF_validator(CPFnumber) is True:
-                Shortcut(pasteName,'CPF',CPFnumber)           
+                Shortcut(pasteName,'CPF',CPFnumber)  
+            else:
+                print(bcolors.FAIL +"CPF inválido encontrado"+ bcolors.ENDC)       
 
         else:
-            print(bcolors.FAIL+'[-] Pass'+bcolors.ENDC)      
+            print(bcolors.FAIL + '[-] Pass' + bcolors.ENDC)      
     except UnicodeDecodeError:
         #Algumas vezes os pastes estao em outra lingua ou encodados, contendo malware na maioria dos casos.
         print('Paste codificado')
@@ -133,14 +142,13 @@ class TextAreaParser(HTMLParser):
         if Quantities > 0:       
             if self.inTextarea:
                 print(bcolors.OKBLUE+"[+]"+bcolors.ENDC+" Lendo o Paste: https://pastebin.com" + self.paste_id)
-                #print(data) possivel lugar para salvar o arquivo de log
-                Search(data,self.paste_id)
                 #ARMAZENANDO NO MONGODB (caso nao seja repetido)
                 dupli_check = collection.find({ "Link": { "$regex": str(self.paste_id) } })
                 try:
                     dupli_val = dupli_check[0]
                     print(bcolors.FAIL+'[-] Paste repetido'+bcolors.ENDC)
                 except:
+                    Search(data,self.paste_id)
                     post = {'Link': self.paste_id, 'Conteudo': data, 'last_modified': aware_datetime}
                     collection.insert_one(post)
                     print(bcolors.OKBLUE+"[+] Paste armazenado no Banco de dados"+bcolors.ENDC)
@@ -169,6 +177,15 @@ def get_public_pastes():
             get_paste_by_id(link)
             time.sleep(random.uniform(4, 18))
 
+def Help():
+    print("\nusage: spyweb [-h] [-c [-q]\n")
+    print("Spyweb: Pastebin scraper\n")
+    print("Argumentos opcionais:")
+    print("-h               Mostra a mensagem de ajuda e fecha.")
+    print("-c VALOR         Utiliza um valor informado pelo usuário para fazer o filtro no pastebin.")
+    print("-q QUANTIDADE    Limita a quantidade de pastes que serão procurados.\n")
+    sys.exit()
+
 def Get_arguments():
     argv = sys.argv[1:]
     global Custom
@@ -176,16 +193,15 @@ def Get_arguments():
     Quantities = 50
 
     try:
-        opts, args = getopt.getopt(argv, "c:q:")
+        opts, args = getopt.getopt(argv, "hc:q:")
 
     except:
         print(bcolors.FAIL+'[-] Error'+bcolors.ENDC)
 
     for opt, arg in opts:
-        #Caso for informado uma informação específica com -c
-        #Exemplo: python3 scrape.py -c import
-        #Exemplo: python3 scrape.py -c python
-        if opt in ['-c']:
+        if opt in ['-h']:
+            Help()
+        elif opt in ['-c']:
             Custom = arg
         elif opt in ['-q']:
             Quantities = int(arg)
